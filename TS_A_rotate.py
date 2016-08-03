@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 # import matplotlib.pyplot as plt
 import math
-import TS_functions
+from gmtpy import GMT
 
 ## Total Station Line A
 
@@ -35,3 +35,14 @@ TS_data['X1'],TS_data['Y1'] = rotate(TS_data['X0'],TS_data['Y0'],xBase,yBase,ang
 angle = 7
 print rotate(TS_data['X1'],TS_data['Y0'],xBase,yBase,angle * math.pi/180)
 
+# Setup GMT
+gmt = GMT( config={'BASEMAP_TYPE':'fancy'} )
+
+gmt.pscoast( R='5/15/52/58',       # region
+             J='B10/55/55/60/10c', # projection
+             B='4g4',              # grid
+             D='f',                # resolution
+             S=(114,159,207),      # wet fill color
+             G=(233,185,110),      # dry fill color
+             W='thinnest' )        # shoreline pen
+gmt.save('example1.pdf')

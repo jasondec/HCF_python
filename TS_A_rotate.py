@@ -2,7 +2,7 @@
 
 import pandas as pd
 import numpy as np
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import math
 
 ## Total Station Line A
@@ -26,6 +26,10 @@ TS_data['x_working'] = TS_data['X0']
 TS_data['y_working'] = TS_data['Y0']
 TS_data['z_working'] = TS_data['Z0']
 
+plt.plot(TS_data['x_working'],TS_data['y_working'])
+print TS_data['x_working'],TS_data['y_working']
+plt.show()
+
 ## Find base points in TS and GPS tables
 # A_base_GPS = GPS_data.loc[GPS_data['Point'] == 'A_base']
 # A_base_TS = TS_data.loc[TS_data['ID'] == 'A_base']
@@ -37,13 +41,13 @@ A_base_TS = TS_data.loc[0]
 delX = A_base_GPS['Lon'] - A_base_TS['X0']
 delY = A_base_GPS['Lat'] - A_base_TS['Y0']
 delZ = A_base_GPS['Elev'] - A_base_TS['Z0']
-print delX, delY, delZ
+# print delX, delY, delZ
 
 TS_data['x_working'] = TS_data['x_working'] + delX
 TS_data['y_working'] = TS_data['y_working'] + delY
 TS_data['z_working'] = TS_data['z_working'] + delZ
 
-print TS_data
+# print TS_data
 
 ## Correct TS Line A data by rotating 180 deg
 angle = 180 #degrees

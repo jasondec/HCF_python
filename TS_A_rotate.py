@@ -11,9 +11,10 @@ from HCF_functions import rotate_xy,calc_misfit
 
 TS_data_file= '/Users/jasondec/0_gradwork/0_hcf/TS_A_v0.csv'
 GPS_data_file = '/Users/jasondec/0_gradwork/0_hcf/GPS_A_v0.csv'
-TS_data = pd.read_csv(TS_data_file)
-GPS_data = pd.read_csv(GPS_data_file)
-
+TS_data = pd.read_csv(TS_data_file, index_col='ID')         ## import CSV file using ID col as the indexer
+GPS_data = pd.read_csv(GPS_data_file, index_col='Point')    ## import CSV file using Point col as indexer
+# df = pd.merge(TS_data,GPS_data, left_index=True,right_index=True, how='left')
+# print df
 
 ## copy original values to new working columns
 TS_data['x_working'] = TS_data['X0']
@@ -25,17 +26,9 @@ plt.scatter(TS_data['x_working'],TS_data['y_working'], color='grey')
 plt.scatter(GPS_data['Lon'],GPS_data['Lat'], color='orange')
 
 
-
-## Find base points in TS and GPS tables
-# A_base_GPS = GPS_data.loc[GPS_data['Point'] == 'A_base']
-# A_base_TS = TS_data.loc[TS_data['ID'] == 'A_base']
-A_base_TS_key = 0
-A_base_GPS_key = 7
-
-
 ## Shift all TS points by A_base_GPS - A_base_TS in x,y,z
-A_base_GPS = GPS_data.loc[A_base_GPS_key]
-A_base_TS = TS_data.loc[A_base_TS_key]
+A_base_GPS = GPS_data.loc['A_base']
+A_base_TS = TS_data.loc['A_base']
 
 delX = A_base_GPS['Lon'] - A_base_TS['X0']
 delY = A_base_GPS['Lat'] - A_base_TS['Y0']
@@ -50,12 +43,12 @@ plt.scatter(TS_data['x_working'],TS_data['y_working'], color='blue')
 
 
 
-## Correct TS Line A data by rotating 180 deg
+## Correct TS Line A data by rotating 180 deg.  Not applicable to other lines.
 angle = 180 #degrees
-xBase = TS_data.loc[A_base_TS_key]['x_working']      # x-coord of baseA
-yBase = TS_data.loc[A_base_TS_key]['y_working']      # y-coord of baseA
+xBase = TS_data.loc['A_base']['x_working']      # x-coord of baseA
+yBase = TS_data.loc['A_base']['y_working']      # y-coord of baseA
 
-TS_data['x_working'],TS_data['y_working'] = rotate_xy(TS_data['x_working'],TS_data['y_working'],xBase,yBase,angle * math.pi/180)
+TS_data['x_working'],TS_data['y_working'] = rotate_xy(TS_data['x_working'],TS_data['y_working'],xBase,yBase,angle * math.pi/180)    ## rotation function is imported
 
 ## Plot rotated points
 plt.scatter(TS_data['x_working'],TS_data['y_working'], color='red')
@@ -63,18 +56,14 @@ plt.scatter(TS_data['x_working'],TS_data['y_working'], color='red')
 
 
 ## ID co-located GPS and TS points by index
-for point in ['A_001']:
-    x1 = GPS_data.loc[GPS_data['Point'] == point]['Lon']
-    y1 = GPS_data.loc[GPS_data['Point'] == point]['Lat']
-    x2 = TS_data.loc[TS_data['ID'] == point]['x_working']
-    y2 = TS_data.loc[TS_data['ID'] == point]['y_working']
-    print x1
-    print y1
-    print x2
-    print y2
-    # misfit = calc_misfit(x1,y1,x2,y2)
-    delX = abs(x1 - x2)
-    delY = abs(y1 - y2)
-    # off = math.sqrt(delX ^ 2 + delY ^ 2)
-    off = (delX^2 + delY^2)
-    print off
+for point in ['A_001','A_016','A_030','A_045','A_060','A_080','A_095']:
+    x1 = GPS_data.loc[point]['Lon']
+    y1 = GPS_data.loc[point]['Lat']
+    x2 = TS_data.loc[point]['x_working']
+    y2 = TS_data.loc[point]['y_working']
+
+    misfit = calc_misfit(x1,y1,x2,y2)   ## calculate misfit using external function
+    TS_data.set_value(point,'misfit',misfit)
+    GPS_error = GPS_data.loc[point]['Hor_Acc']
+
+# print TS_data

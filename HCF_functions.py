@@ -10,7 +10,9 @@ def rotate_xy(xPoint,yPoint,x0,y0,angle):
     return xNew,yNew
 
 def calc_misfit(x1,y1,x2,y2):
+    import math
+
     delX = abs(x1-x2)
     delY = abs(y1-y2)
-    off = math.sqrt(delY^2,delY^2)
+    off = math.sqrt(delX^2 + delY^2)
     return off

@@ -5,6 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
+from HCF_functions import rotate_xy,calc_misfit
+
 ## Total Station Line A
 
 TS_data_file= '/Users/jasondec/0_gradwork/0_hcf/TS_A_v0.csv'
@@ -12,14 +14,6 @@ GPS_data_file = '/Users/jasondec/0_gradwork/0_hcf/GPS_A_v0.csv'
 TS_data = pd.read_csv(TS_data_file)
 GPS_data = pd.read_csv(GPS_data_file)
 
-def rotate_xy(xPoint,yPoint,x0,y0,angle):
-    import math
-
-    xDiff = xPoint - x0
-    yDiff = yPoint - y0
-    xNew = x0 + xDiff * math.cos(angle) - xDiff * math.sin(angle)
-    yNew = y0 + yDiff * math.cos(angle) + yDiff * math.sin(angle)
-    return xNew,yNew
 
 ## copy original values to new working columns
 TS_data['x_working'] = TS_data['X0']
@@ -65,6 +59,22 @@ TS_data['x_working'],TS_data['y_working'] = rotate_xy(TS_data['x_working'],TS_da
 
 ## Plot rotated points
 plt.scatter(TS_data['x_working'],TS_data['y_working'], color='red')
-plt.show()
+# plt.show()
 
 
+## ID co-located GPS and TS points by index
+for point in ['A_001']:
+    x1 = GPS_data.loc[GPS_data['Point'] == point]['Lon']
+    y1 = GPS_data.loc[GPS_data['Point'] == point]['Lat']
+    x2 = TS_data.loc[TS_data['ID'] == point]['x_working']
+    y2 = TS_data.loc[TS_data['ID'] == point]['y_working']
+    print x1
+    print y1
+    print x2
+    print y2
+    # misfit = calc_misfit(x1,y1,x2,y2)
+    delX = abs(x1 - x2)
+    delY = abs(y1 - y2)
+    # off = math.sqrt(delX ^ 2 + delY ^ 2)
+    off = (delX^2 + delY^2)
+    print off

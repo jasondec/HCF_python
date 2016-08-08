@@ -5,8 +5,8 @@ def rotate_xy(xPoint,yPoint,x0,y0,angle):
 
     xDiff = xPoint - x0
     yDiff = yPoint - y0
-    xNew = x0 + xDiff * math.cos(angle) - xDiff * math.sin(angle)
-    yNew = y0 + yDiff * math.cos(angle) + yDiff * math.sin(angle)
+    xNew = x0 + xDiff * math.cos(angle) - yDiff * math.sin(angle)
+    yNew = y0 + yDiff * math.cos(angle) + xDiff * math.sin(angle)
     return xNew,yNew
 
 def calc_misfit(x1,y1,x2,y2):

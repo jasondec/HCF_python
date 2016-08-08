@@ -52,7 +52,7 @@ def calc_misfit(df):
     import numpy as np
 
     ## calculate chi-square for each point (chisqr X + chisqrY)
-    df['chi_sqr'] = np.square(df['x_working'] - df['gps_lon']) / df['x_working'] + np.square(df['y_working'] - df['gps_lat']) / df['y_working']
+    df['chi_sqr'] = np.square(df['x_working'] - df['gps_lon']) / df['gps_lon'] + np.square(df['y_working'] - df['gps_lat']) / df['gps_lat']
     ## weight misfit by inverse of gps accuracy
     df['misfit'] = df['chi_sqr'] / df['gps_horiz_acc']
     return df
@@ -76,32 +76,15 @@ def plot_angle(angle):
     return df       ## return the sum of misfits
 
 ## calculate minimum result of single-variable function
-min = optimize.brent(optimize_rotation)
+min = optimize.minimize_scalar(optimize_rotation)
 print min
 
 ## rainbow plot
+for a in range(-11,-1):
+    df = plot_angle(a)
+    plt.scatter(df['x_working'], df['y_working'], color='blue')
 
-df = plot_angle(-1)
-plt.scatter(df['x_working'], df['y_working'], color='blue')
-df = plot_angle(-2)
-plt.scatter(df['x_working'], df['y_working'], color='blue')
-df = plot_angle(-3)
-plt.scatter(df['x_working'], df['y_working'], color='blue')
-df = plot_angle(-4)
-plt.scatter(df['x_working'], df['y_working'], color='blue')
-df = plot_angle(-5)
-plt.scatter(df['x_working'], df['y_working'], color='blue')
-df = plot_angle(-6)
-plt.scatter(df['x_working'], df['y_working'], color='blue')
-df = plot_angle(-7)
-plt.scatter(df['x_working'], df['y_working'], color='blue')
-df = plot_angle(-8)
-plt.scatter(df['x_working'], df['y_working'], color='blue')
-df = plot_angle(-9)
-plt.scatter(df['x_working'], df['y_working'], color='blue')
-df = plot_angle(-10)
-plt.scatter(df['x_working'], df['y_working'], color='blue')
-df = plot_angle(min)
+df = plot_angle(min.x)
 plt.scatter(df['x_working'], df['y_working'], color='orange')
 
 

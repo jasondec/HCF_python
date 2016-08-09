@@ -1,18 +1,19 @@
 #!/Users/jasondec/anaconda2/bin/python
 
+import pandas as pd
 from scipy import optimize
 import matplotlib.pyplot as plt
 
 ## Total Station Line A
-TS_data_file = '/Users/jasondec/0_gradwork/0_hcf/TS_A_v0.csv'
-GPS_data_file = '/Users/jasondec/0_gradwork/0_hcf/GPS_A_v0.csv'
+TS_data_file = '/Users/jasondec/0_gradwork/0_hcf/TS_B_v0.csv'
+GPS_data_file = '/Users/jasondec/0_gradwork/0_hcf/GPS_B_v0.csv'
 
 def import_data(TS_data_file,GPS_data_file):
     import pandas as pd
     import matplotlib.pyplot as plt
 
-    TS_data = pd.read_csv(TS_data_file, index_col='ID')  ## import CSV file using ID col as the indexer
-    GPS_data = pd.read_csv(GPS_data_file, index_col='gps_point')  ## import CSV file using Point col as indexer
+    TS_data = pd.read_csv(TS_data_file, comment='#', index_col='ID')  ## import CSV file using ID col as the indexer
+    GPS_data = pd.read_csv(GPS_data_file, comment='#', index_col='gps_point')  ## import CSV file using Point col as indexer
     df = pd.merge(TS_data, GPS_data, left_index=True, right_index=True, how='left')
 
     ## copy original values to new working columns
@@ -26,25 +27,26 @@ def import_data(TS_data_file,GPS_data_file):
 
     return df
 
-def shift_points(df):
-    ## Shift all TS points by A_base_GPS - A_base_TS in x,y,z
-    delX = df.loc['A_base']['gps_lon'] - df.loc['A_base']['X0']
-    delY = df.loc['A_base']['gps_lat'] - df.loc['A_base']['Y0']
-    delZ = df.loc['A_base']['gps_elev'] - df.loc['A_base']['Z0']
+def shift_points(df,base):
+    ## Shift all TS points by base - A_base_TS in x,y,z
+    delX = df.loc[base]['gps_lon'] - df.loc[base]['x_working']
+    delY = df.loc[base]['gps_lat'] - df.loc[base]['y_working']
+    delZ = df.loc[base]['gps_elev'] - df.loc[base]['z_working']
 
     df['x_working'] = df['x_working'] + delX
     df['y_working'] = df['y_working'] + delY
     df['z_working'] = df['z_working'] + delZ
     return df
 
-def rotate_points(df,angle):
+
+def rotate_points(df,angle,base):
     import math
     from HCF_functions import rotate_xy
 
-    xBase = df.loc['A_base']['x_working']  # x-coord of baseA
-    yBase = df.loc['A_base']['y_working']  # y-coord of baseA
+    xBase = df.loc[base]['x_working']  # x-coord of base
+    yBase = df.loc[base]['y_working']  # y-coord of base
 
-    df['x_working'], df['y_working'] = rotate_xy(df['x_working'], df['y_working'], xBase, yBase, angle * math.pi / 180)  ## rotate using external fcn
+    df['x_working'], df['y_working'] = rotate_xy(df['x_working'], df['y_working'], xBase, yBase, angle * math.pi / 180)
     return df
 
 
@@ -59,34 +61,42 @@ def calc_misfit(df):
 
 
 def optimize_rotation(angle):
-    df = import_data('/Users/jasondec/0_gradwork/0_hcf/TS_A_v0.csv','/Users/jasondec/0_gradwork/0_hcf/GPS_A_v0.csv')  ## import raw data
-    df = shift_points(df)           ## shift all points to align TS base with GPS base
-    df = rotate_points(df,180)      ## rotate points 180 deg to correct field error (line A only)
-    df = rotate_points(df,angle)    ## rotate points arbitrary angle to correct for field misalignment.  iterate over this function
+    df = import_data('/Users/jasondec/0_gradwork/0_hcf/TS_B_v0.csv','/Users/jasondec/0_gradwork/0_hcf/GPS_B_v0.csv')  ## import raw data
+    # df = rotate_points(df, 180, 'B_base')  ## rotate points 180 deg to correct field error (line A only)
+    df = shift_points(df,'B_base')           ## shift all points to align TS base with GPS base
+    df = rotate_points(df,angle,'B_base')    ## rotate points arbitrary angle to correct for field misalignment.  iterate over this function
     df = calc_misfit(df)            ## calculate a chi-square misfit
     return df['misfit'].sum()       ## return the sum of misfits
 
-
 def plot_angle(angle):
-    df = import_data('/Users/jasondec/0_gradwork/0_hcf/TS_A_v0.csv','/Users/jasondec/0_gradwork/0_hcf/GPS_A_v0.csv')  ## import raw data
-    df = shift_points(df)           ## shift all points to align TS base with GPS base
-    df = rotate_points(df,180)      ## rotate points 180 deg to correct field error (line A only)
-    df = rotate_points(df,angle)    ## rotate points arbitrary angle to correct for field misalignment.  iterate over this function
+    df = import_data('/Users/jasondec/0_gradwork/0_hcf/TS_B_v0.csv','/Users/jasondec/0_gradwork/0_hcf/GPS_B_v0.csv')  ## import raw data
+    # df = rotate_points(df, 180, 'B_base')  ## rotate points 180 deg to correct field error (line A only)
+    df = shift_points(df,'B_base')           ## shift all points to align TS base with GPS base
+    df = rotate_points(df,angle,'B_base')    ## rotate points arbitrary angle to correct for field misalignment.  iterate over this function
     df = calc_misfit(df)            ## calculate a chi-square misfit
     return df       ## return the sum of misfits
 
 ## calculate minimum result of single-variable function
 min = optimize.minimize_scalar(optimize_rotation)
 print min
-
-## rainbow plot
-for a in range(-11,-1):
-    df = plot_angle(a)
-    plt.scatter(df['x_working'], df['y_working'], color='blue')
-
+    # plot it
 df = plot_angle(min.x)
 plt.scatter(df['x_working'], df['y_working'], color='orange')
+    # save it
+df.to_csv('/Users/jasondec/0_gradwork/0_hcf/TS_B_v2.csv')
 
+
+## plot multiple angles
+# for a in range(0,0):
+#     df = plot_angle(a)
+#     plt.scatter(df['x_working'], df['y_working'], color='blue')
+
+# ## plot raw data, no rotation or shift
+# plt.scatter(df['X0'], df['Y0'], color='blue')
+
+## plot all GPS points, raw
+# gps = pd.read_csv('/Users/jasondec/0_gradwork/0_hcf/raw_gps.csv', index_col='Name')
+# plt.scatter(gps['Lon'], gps['Lat'], color='purple')
 
 plt.show()
 # print df

@@ -5,8 +5,8 @@ from scipy import optimize
 import matplotlib.pyplot as plt
 
 ## Total Station Line A
-TS_data_file = '/Users/jasondec/0_gradwork/0_hcf/TS_A_v0.csv'
-GPS_data_file = '/Users/jasondec/0_gradwork/0_hcf/GPS_A_v0.csv'
+TS_data_file = '/Users/jasondec/0_gradwork/0_hcf/TS_B_v0.csv'
+GPS_data_file = '/Users/jasondec/0_gradwork/0_hcf/GPS_B_v0.csv'
 
 def import_data(TS_data_file,GPS_data_file):
     import pandas as pd
@@ -66,18 +66,18 @@ def calc_misfit(df):
 
 
 def optimize_rotation(angle):
-    df = import_data('/Users/jasondec/0_gradwork/0_hcf/TS_A_v0.csv','/Users/jasondec/0_gradwork/0_hcf/GPS_A_v0.csv')  ## import raw data
-    df = rotate_points(df, 180, 'A_base')  ## rotate points 180 deg to correct field error (line A only)
-    df = shift_points(df,'A_base')           ## shift all points to align TS base with GPS base
-    df = rotate_points(df,angle,'A_base')    ## rotate points arbitrary angle to correct for field misalignment.  iterate over this function
+    df = import_data('/Users/jasondec/0_gradwork/0_hcf/TS_B_v0.csv','/Users/jasondec/0_gradwork/0_hcf/GPS_B_v0.csv')  ## import raw data
+    # df = rotate_points(df, 180, 'A_base')  ## rotate points 180 deg to correct field error (line A only)
+    df = shift_points(df,'B_base')           ## shift all points to align TS base with GPS base
+    df = rotate_points(df,angle,'B_base')    ## rotate points arbitrary angle to correct for field misalignment.  iterate over this function
     df = calc_misfit(df)            ## calculate a chi-square misfit
     return df['misfit'].sum()       ## return the sum of misfits
 
 def plot_angle(angle):
-    df = import_data('/Users/jasondec/0_gradwork/0_hcf/TS_A_v0.csv','/Users/jasondec/0_gradwork/0_hcf/GPS_A_v0.csv')  ## import raw data
-    df = rotate_points(df, 180, 'A_base')  ## rotate points 180 deg to correct field error (line A only)
-    df = shift_points(df,'A_base')           ## shift all points to align TS base with GPS base
-    df = rotate_points(df,angle,'A_base')    ## rotate points arbitrary angle to correct for field misalignment.  iterate over this function
+    df = import_data('/Users/jasondec/0_gradwork/0_hcf/TS_B_v0.csv','/Users/jasondec/0_gradwork/0_hcf/GPS_B_v0.csv')  ## import raw data
+    # df = rotate_points(df, 180, 'A_base')  ## rotate points 180 deg to correct field error (line A only)
+    df = shift_points(df,'B_base')           ## shift all points to align TS base with GPS base
+    df = rotate_points(df,angle,'B_base')    ## rotate points arbitrary angle to correct for field misalignment.  iterate over this function
     df = calc_misfit(df)            ## calculate a chi-square misfit
     return df       ## return the sum of misfits
 
@@ -88,7 +88,7 @@ print min
 df = plot_angle(min.x)
 plt.scatter(df['x_working'], df['y_working'], color='orange')
     # save it
-df.to_csv('/Users/jasondec/0_gradwork/0_hcf/TS_A_v1.csv')
+df.to_csv('/Users/jasondec/0_gradwork/0_hcf/TS_B_v1.csv')
 
 
 ## plot multiple angles

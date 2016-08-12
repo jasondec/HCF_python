@@ -64,6 +64,15 @@ def calc_misfit(df):
     df['misfit'] = df['chi_sqr'] / df['gps_horiz_acc']
     return df
 
+def wgs84_to_utm(df):
+    import utm
+    def getUTMs(row):
+        import pandas as pd
+        tup = utm.from_latlon(row.loc['y_working'], row.loc['x_working'])
+        return pd.Series(tup[:2])
+    df[['easting','northing']] = df[['y_working','x_working']].apply(getUTMs, axis=1)
+    print df
+    return df
 
 def optimize_rotation(angle):
     df = import_data('/Users/jasondec/0_gradwork/0_hcf/TS_C_v0.csv','/Users/jasondec/0_gradwork/0_hcf/GPS_C_v0.csv')  ## import raw data
@@ -86,10 +95,10 @@ min = optimize.minimize_scalar(optimize_rotation)
 print min
     # plot it
 df = plot_angle(min.x)
+wgs84_to_utm(df)
 plt.scatter(df['x_working'], df['y_working'], color='orange')
     # save it
 df.to_csv('/Users/jasondec/0_gradwork/0_hcf/TS_C_v1.csv')
-
 
 ## plot multiple angles
 # for a in range(0,0):
@@ -103,6 +112,6 @@ df.to_csv('/Users/jasondec/0_gradwork/0_hcf/TS_C_v1.csv')
 # gps = pd.read_csv('/Users/jasondec/0_gradwork/0_hcf/raw_gps.csv', index_col='Name')
 # plt.scatter(gps['Lon'], gps['Lat'], color='purple')
 
-plt.show()
+# plt.show()
 # print df
 exit()

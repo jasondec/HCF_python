@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 ## Total Station Line A
 TS_data_file = '/Users/jasondec/0_gradwork/0_hcf/TS_E_v0.csv'
-GPS_data_file = '/Users/jasondec/0_gradwork/0_hcf/GPS_E_v0.csv'
+GPS_data_file = '/Users/jasondec/0_gradwork/0_hcf/GPS_E_v2.csv'
 
 def import_data(TS_data_file,GPS_data_file):
     import pandas as pd
@@ -41,10 +41,12 @@ def wgs84_to_utm(df):
     import utm
 
     print df
-    df['gps_lon'],df['gps_lat'] = utm.from_latlon(df['gps_lat'],df['gps_lon'])
-    # df['gps_lon'] = utm[0]
-    # df['gps_lat'] = utm[1]
+    tup = (df['gps_lat'],df['gps_lon'])
+    a = utm.from_latlon(tup)
+    df['gps_lon'] = a[0]
+    df['gps_lat'] = a[1]
     return df
+
 
 def utm_to_wgs84(df):
     import utm
@@ -54,6 +56,10 @@ def utm_to_wgs84(df):
     df['y_working'] = wgs[0]
     print df
 
+    return df
+
+def calc_diff(df):
+    new = df.diff()
     return df
 
 def rotate_points(df,angle,base):
@@ -66,6 +72,13 @@ def rotate_points(df,angle,base):
     df['x_working'], df['y_working'] = rotate_xy(df['x_working'], df['y_working'], xBase, yBase, angle * math.pi / 180)
     return df
 
+def dist_from_base(df,base):
+    import numpy as np
+
+    xDist = df['x_working'] - df.loc[base]['x_working']
+    yDist = df['y_working'] - df.loc[base]['y_working']
+    df['basedist'] = np.sqrt(np.square(xDist)+np.square(yDist))
+    return df
 
 def calc_misfit(df):
     import numpy as np
@@ -76,8 +89,7 @@ def calc_misfit(df):
 
 
 def optimize_rotation(angle):
-    df = import_data('/Users/jasondec/0_gradwork/0_hcf/TS_E_v0.csv','/Users/jasondec/0_gradwork/0_hcf/GPS_E_v0.csv')  ## import raw data
-    # df = wgs84_to_utm(df)
+    df = import_data('/Users/jasondec/0_gradwork/0_hcf/TS_E_v0.csv','/Users/jasondec/0_gradwork/0_hcf/GPS_E_v2.csv')  ## import raw data
     df = rotate_points(df, 180, 'E_base')  ## rotate points 180 deg to correct field error (line A only)
     df = shift_points(df,'E_base')           ## shift all points to align TS base with GPS base
     df = rotate_points(df,angle,'E_base')    ## rotate points arbitrary angle to correct for field misalignment.  iterate over this function
@@ -85,11 +97,12 @@ def optimize_rotation(angle):
     return df['misfit'].sum()       ## return the sum of misfits
 
 def plot_angle(angle):
-    df = import_data('/Users/jasondec/0_gradwork/0_hcf/TS_E_v0.csv','/Users/jasondec/0_gradwork/0_hcf/GPS_E_v0.csv')  ## import raw data
+    df = import_data('/Users/jasondec/0_gradwork/0_hcf/TS_E_v0.csv','/Users/jasondec/0_gradwork/0_hcf/GPS_E_v2.csv')  ## import raw data
     # df = utm_to_wgs84(df)
     df = rotate_points(df, 180, 'E_base')  ## rotate points 180 deg to correct field error (line A only)
     df = shift_points(df,'E_base')           ## shift all points to align TS base with GPS base
     df = rotate_points(df,angle,'E_base')    ## rotate points arbitrary angle to correct for field misalignment.  iterate over this function
+    # df = rotate_points(df, 2,'E_base')  ## rotate points arbitrary angle to correct for field misalignment.  iterate over this function
     df = calc_misfit(df)            ## calculate a chi-square misfit
     return df       ## return the sum of misfits
 
@@ -103,7 +116,12 @@ print min
 df = plot_angle(min.x)
 plt.scatter(df['x_working'], df['y_working'], color='orange')
 #     save it
-df.to_csv('/Users/jasondec/0_gradwork/0_hcf/TS_E_v1.csv')
+
+df['elev_diff'] = df['gps_elev'] - df['z_working']
+dist_from_base(df,'E_base')
+df['dx_precision'] = 5e-6*df['basedist']+0.001
+
+df.to_csv('/Users/jasondec/0_gradwork/0_hcf/TS_E_v2.csv')
 
 
 ## plot multiple angles

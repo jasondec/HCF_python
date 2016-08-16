@@ -5,9 +5,10 @@ def rotate_xy(xPoint,yPoint,x0,y0,angle):
 
     xDiff = xPoint - x0
     yDiff = yPoint - y0
-    xNew = x0 + xDiff * math.cos(angle) - xDiff * math.sin(angle)
-    yNew = y0 + yDiff * math.cos(angle) + yDiff * math.sin(angle)
+    xNew = x0 + xDiff * math.cos(angle) - yDiff * math.sin(angle)
+    yNew = y0 + yDiff * math.cos(angle) + xDiff * math.sin(angle)
     return xNew,yNew
+
 
 def import_data(TS_data_file,GPS_data_file):
     import pandas as pd
@@ -15,75 +16,145 @@ def import_data(TS_data_file,GPS_data_file):
 
     TS_data = pd.read_csv(TS_data_file, comment='#', index_col='ID')  ## import CSV file using ID col as the indexer
     GPS_data = pd.read_csv(GPS_data_file, comment='#', index_col='gps_point')  ## import CSV file using Point col as indexer
-    df = pd.merge(TS_data, GPS_data, left_index=True, right_index=True, how='left')
+    dataframe = pd.merge(TS_data, GPS_data, left_index=True, right_index=True, how='left')
 
     ## copy original values to new working columns
-    df['x_working'] = df['X0']
-    df['y_working'] = df['Y0']
-    df['z_working'] = df['Z0']
+    dataframe['x_working'] = dataframe['X0']
+    dataframe['y_working'] = dataframe['Y0']
+    dataframe['z_working'] = dataframe['Z0']
 
     ## Plot raw points
-    # plt.scatter(df['x_working'], df['y_working'], color='grey')
-    # plt.scatter(df['gps_lon'], df['gps_lat'], color='red')
+    # plt.scatter(dataframe['x_working'], dataframe['y_working'], color='grey')
+    # plt.scatter(dataframe['gps_lon'], dataframe['gps_lat'], color='red')
 
-    return df
+    return dataframe
 
-def shift_points(df,base):
+
+def shift_points(dataframe,base):
     ## Shift all TS points by base - A_base_TS in x,y,z
-    delX = df.loc[base]['gps_lon'] - df.loc[base]['x_working']
-    delY = df.loc[base]['gps_lat'] - df.loc[base]['y_working']
-    delZ = df.loc[base]['gps_elev'] - df.loc[base]['z_working']
+    delX = dataframe.loc[base]['gps_lon'] - dataframe.loc[base]['x_working']
+    delY = dataframe.loc[base]['gps_lat'] - dataframe.loc[base]['y_working']
+    delZ = dataframe.loc[base]['gps_elev'] - dataframe.loc[base]['z_working']
 
-    df['x_working'] = df['x_working'] + delX
-    df['y_working'] = df['y_working'] + delY
-    df['z_working'] = df['z_working'] + delZ
-    return df
+    # delX = dataframe.loc[base]['x_working'] - dataframe.loc[base]['gps_lon']
+    # delY = dataframe.loc[base]['y_working'] - dataframe.loc[base]['gps_lat']
+    # delZ = dataframe.loc[base]['z_working'] - dataframe.loc[base]['gps_elev']
 
-def rotate_points(df,angle,base):
+    dataframe['x_working'] = dataframe['x_working'] + delX
+    dataframe['y_working'] = dataframe['y_working'] + delY
+    dataframe['z_working'] = dataframe['z_working'] + delZ
+    return dataframe
+
+
+def rotate_points(dataframe,angle,base):
     import math
     from HCF_functions import rotate_xy
 
-    xBase = df.loc[base]['x_working']  # x-coord of base
-    yBase = df.loc[base]['y_working']  # y-coord of base
+    xBase = dataframe.loc[base]['x_working']  # x-coord of base
+    yBase = dataframe.loc[base]['y_working']  # y-coord of base
 
-    df['x_working'], df['y_working'] = rotate_xy(df['x_working'], df['y_working'], xBase, yBase, angle * math.pi / 180)
-    return df
+    dataframe['x_working'], dataframe['y_working'] = rotate_xy(dataframe['x_working'], dataframe['y_working'], xBase, yBase, angle * math.pi / 180)
+    return dataframe
 
-def calc_misfit_weighted(df):
+
+def calc_misfit_weighted(dataframe):
     import numpy as np
 
     ## calculate chi-square for each point (chisqr X + chisqrY)
-    df['chi_sqr'] = np.square(df['x_working'] - df['gps_lon']) / np.square(df['gps_lon']) + np.square(df['y_working'] - df['gps_lat']) / np.square(df['gps_lat'])
+    dataframe['chi_sqr'] = np.square(dataframe['x_working'] - dataframe['gps_lon']) / np.square(dataframe['gps_lon']) + np.square(dataframe['y_working'] - dataframe['gps_lat']) / np.square(dataframe['gps_lat'])
     ## weight misfit by inverse of gps accuracy
-    df['misfit'] = df['chi_sqr'] / df['gps_horiz_acc']
-    return df
+    dataframe['misfit'] = dataframe['chi_sqr'] / dataframe['gps_horiz_acc']
+    return dataframe
 
-def calc_misfit(df):
+
+def calc_misfit_simple(dataframe):
     import numpy as np
 
     ## calculate misfit
-    df['misfit'] = np.square(df['x_working'] - df['gps_lon']) / np.square(df['gps_lon']) + np.square(df['y_working'] - df['gps_lat']) / np.square(df['gps_lat'])
-    return df
+    a = dataframe['x_working'] - dataframe['gps_lon']
+    b = dataframe['y_working'] - dataframe['gps_lat']
+    c = np.square(a) + np.square(b)
+    dataframe['misfit'] = np.sqrt(c)
 
-def wgs84_to_utm(df):
+    return dataframe
+
+
+def wgs84_to_utm(dataframe,xIn,yIn,xOut,yOut):
     import utm
     def getUTMs(row):
         import pandas as pd
-        tup = utm.from_latlon(row.loc['y_working'], row.loc['x_working'])
+        tup = utm.from_latlon(row.loc[yIn], row.loc[xIn])
         return pd.Series(tup[:2])
-    df[['easting','northing']] = df[['y_working','x_working']].apply(getUTMs, axis=1)
-    print df
-    return df
+    dataframe[[xOut,yOut]] = dataframe[[yIn,xIn]].apply(getUTMs, axis=1)
+    return dataframe
 
-def dist_from_base(df,base):
+
+def dist_from_base(dataframe,base):
     import numpy as np
 
-    xDist = df['x_working'] - df.loc[base]['x_working']
-    yDist = df['y_working'] - df.loc[base]['y_working']
-    df['basedist'] = np.sqrt(np.square(xDist)+np.square(yDist))
-    return df
+    xDist = dataframe['x_working'] - dataframe.loc[base]['x_working']
+    yDist = dataframe['y_working'] - dataframe.loc[base]['y_working']
+    dataframe['basedist'] = np.sqrt(np.square(xDist)+np.square(yDist))
+    return dataframe
 
-def plot_mult_angles(df,angles):
-    for a in range(angles):
-        df = plot_angle(a)
-        plt.scatter(df['x_working'], df['y_working'], color='blue')
+
+def init_plot():
+    import matplotlib.pyplot as plt
+    plt.figure(figsize=(8, 8), dpi=80)
+
+
+def make_plot():
+    import matplotlib.pyplot as plt
+
+    plt.grid(True)
+    plt.axes().set_aspect('equal', 'datalim')
+    plt.show()
+
+
+def optimize_rotate_simple(angle,df,base):
+    import numpy as np
+    import math
+    from HCF_functions import rotate_xy
+    import matplotlib.pyplot as plt
+
+    sum = 0
+    pick = np.isfinite(df['gps_lat'])
+    x0 = df.loc[base]['x_working']
+    y0 = df.loc[base]['y_working']
+    for index, row in df[pick].iterrows():
+        newX, newY = rotate_xy(row['x_working'],row['y_working'],x0,y0, angle * math.pi / 180)
+        gpsX, gpsY = row['gps_lon'], row['gps_lat']
+        a = newX - gpsX
+        b = newY - gpsY
+        c = np.square(a) + np.square(b)
+        misfit = np.sqrt(c)
+        sum = sum + misfit
+        print angle, index, sum
+    plt.scatter(df['x_working'], df['y_working'], color='orange')
+    return sum
+
+def optimize_rotate_weighted(angle,df,base):
+    import numpy as np
+    import math
+    from HCF_functions import rotate_xy
+    import matplotlib.pyplot as plt
+
+    sum = 0
+    pick = np.isfinite(df['gps_lat'])
+    x0 = df.loc[base]['x_working']
+    y0 = df.loc[base]['y_working']
+    for index, row in df[pick].iterrows():
+        newX, newY = rotate_xy(row['x_working'],row['y_working'],x0,y0, angle * math.pi / 180)
+        gpsX, gpsY = row['gps_lon'], row['gps_lat']
+        a = newX - gpsX
+        b = newY - gpsY
+        c = np.square(a) + np.square(b)
+        misfit = np.sqrt(c)
+        sum = sum + misfit
+        print angle, index, sum
+    plt.scatter(df['x_working'], df['y_working'], color='orange')
+    return sum
+
+def change_var(x):
+    x = 10*x
+    return x

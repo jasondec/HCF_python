@@ -3,54 +3,55 @@
 import pandas as pd
 from scipy import optimize
 import matplotlib.pyplot as plt
+import numpy as np
+import HCF_functions as hcf
 
-from HCF_functions import import_data, shift_points, rotate_points, calc_misfit_weighted, wgs84_to_utm
-
-## Total Station Line A
+## Total Station Line C
 rootpath = '/Users/jasondec/0_gradwork/0_hcf/'
 TS_data_file = rootpath+'TS_C_v0.csv'
 GPS_data_file = rootpath+'GPS_C_v0.csv'
 outfile = rootpath+'TS_C_v1.csv'
+base = 'C_base'
+
+## Plot prep
+hcf.init_plot()
 
 
-def optimize_rotation(angle):
-    df = import_data('/Users/jasondec/0_gradwork/0_hcf/TS_C_v0.csv','/Users/jasondec/0_gradwork/0_hcf/GPS_C_v0.csv')  ## import raw data
-    # df = rotate_points(df, 180, 'A_base')  ## rotate points 180 deg to correct field error (line A only)
-    df = shift_points(df,'C_base')           ## shift all points to align TS base with GPS base
-    df = rotate_points(df,angle,'C_base')    ## rotate points arbitrary angle to correct for field misalignment.  iterate over this function
-    df = calc_misfit_weighted(df)            ## calculate a chi-square misfit
-    return df['misfit'].sum()       ## return the sum of misfits
+## Import
+data = hcf.import_data(TS_data_file,GPS_data_file)  ## import raw data
 
-def plot_angle(angle):
-    df = import_data('/Users/jasondec/0_gradwork/0_hcf/TS_C_v0.csv','/Users/jasondec/0_gradwork/0_hcf/GPS_C_v0.csv')  ## import raw data
-    # df = rotate_points(df, 180, 'A_base')  ## rotate points 180 deg to correct field error (line A only)
-    df = shift_points(df,'C_base')           ## shift all points to align TS base with GPS base
-    df = rotate_points(df,angle,'C_base')    ## rotate points arbitrary angle to correct for field misalignment.  iterate over this function
-    df = calc_misfit_weighted(df)            ## calculate a chi-square misfit
-    return df       ## return the sum of misfits
+## XY points
+plt.scatter(data['x_working'], data['y_working'], color='grey')
+# rotate_points(data, 180, base)
+hcf.shift_points(data,base)
+hcf.calc_misfit_simple(data)
+working = data.copy()
 
-## calculate minimum result of single-variable function
-min = optimize.minimize_scalar(optimize_rotation)
-print min
-    # plot it
-df = plot_angle(min.x)
-wgs84_to_utm(df)
-plt.scatter(df['x_working'], df['y_working'], color='orange')
-    # save it
-df.to_csv(outfile)
+plt.scatter(data['x_working'], data['y_working'], color='black')
+plt.scatter(data['gps_lon'], data['gps_lat'], color='red')
 
-## plot multiple angles
-# for a in range(0,0):
-#     df = plot_angle(a)
-#     plt.scatter(df['x_working'], df['y_working'], color='blue')
+## Stats
+hcf.dist_from_base(data,base)
+data['dx_precision'] = 5e-6*data['basedist']+0.001
 
-# ## plot raw data, no rotation or shift
-# plt.scatter(df['X0'], df['Y0'], color='blue')
+## Elevation
+data['elev_diff'] = data['gps_elev'] - data['z_working']
 
-## plot all GPS points, raw
-# gps = pd.read_csv('/Users/jasondec/0_gradwork/0_hcf/raw_gps.csv', index_col='Name')
-# plt.scatter(gps['Lon'], gps['Lat'], color='purple')
 
-# plt.show()
-# print df
+## calculate minimum result of function
+min_angle = optimize.minimize_scalar(hcf.optimize_rotate_simple,args=(working,base))
+## 165.23694478019937 degrees rotation, 7.810900286653812 total misfit
+print min_angle ## print results
+
+## apply optimized angle to dataframe
+hcf.rotate_points(data, min_angle.x, base)
+## draw rotated data
+plt.scatter(data['x_working'], working['y_working'], color='blue')
+
+
+## export
+data.to_csv(outfile)
+
+## make plot
+hcf.make_plot()
 exit()

@@ -101,14 +101,8 @@ def dist_from_base(dataframe,base):
 def init_plot():
 	import matplotlib.pyplot as plt
 	plt.figure(figsize=(8, 8), dpi=80)
-
-
-def make_plot():
-	import matplotlib.pyplot as plt
-
 	plt.grid(True)
 	plt.axes().set_aspect('equal', 'datalim')
-	plt.show()
 
 
 def optimize_rotate_simple(angle,df,base):
@@ -162,6 +156,11 @@ def optimize_rotate_weighted(angle,df,base):
 	print angle, sum
 	return sum
 
-def change_var(x):
-	x = 10*x
-	return x
+def fitline(df):
+	import numpy as np
+	line = np.polyfit(df['x_working'],df['y_working'],1)
+	slope = line[0]
+	intercept = line[1]
+	# yfit = [intercept + slope * xi for xi in df['x_working']]
+	# plt.plot(df['x_working'], yfit)
+	return slope,intercept

@@ -37,6 +37,8 @@ for index,row in data.iterrows():
 	globalN = ls.interpolate(projectN)
 	data.set_value(index,'x_project',globalN.x)
 	data.set_value(index,'y_project',globalN.y)
+	offsetN = globalN.distance(pointN)
+	data.set_value(index, 'offset_from_line', offsetN)
 
 ## plot points projected on best fit line
 plt.scatter(data['x_project'], data['y_project'], color='pink')

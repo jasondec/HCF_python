@@ -46,7 +46,7 @@ print min_angle ## print results
 ## apply optimized angle to dataframe
 hcf.rotate_points(data, min_angle.x, base)
 ## draw rotated data
-plt.scatter(data['x_working'], working['y_working'], color='blue')
+plt.scatter(data['x_working'], data['y_working'], color='blue')
 
 
 ## export

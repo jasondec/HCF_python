@@ -5,13 +5,13 @@ from scipy import optimize
 import matplotlib.pyplot as plt
 import numpy as np
 import HCF_functions as hcf
-from shapely.geometry import Point, LineString
 
 ## Total Station Line A
 rootpath = '/Users/jasondec/0_gradwork/0_hcf/'
 TS_data_file = rootpath+'TS_E_v0.csv'
 GPS_data_file = rootpath+'GPS_E_v0.csv'
 outfile = rootpath+'TS_E_v1.csv'
+figout = rootpath+'TS_E_v1.png'
 base = 'E_base'
 
 ## Plot prep
@@ -24,7 +24,6 @@ data = hcf.import_v0_data(TS_data_file,GPS_data_file)  ## import raw data
 plt.scatter(data['x_working'], data['y_working'], color='grey')
 # rotate_points(data, 180, base)
 hcf.shift_points(data,base)
-hcf.calc_misfit_simple(data)
 working = data.copy()
 
 plt.scatter(data['x_working'], data['y_working'], color='black')
@@ -41,16 +40,23 @@ data['elev_diff'] = data['gps_elev'] - data['z_working']
 ## calculate minimum result of function
 min_angle = optimize.minimize_scalar(hcf.optimize_rotate_simple,args=(working,base))
 ## 165.23694478019937 degrees rotation, 7.810900286653812 total misfit
-print min_angle ## print results
 
 ## apply optimized angle to dataframe
 hcf.rotate_points(data, min_angle.x, base)
+hcf.calc_misfit(data)
+misfit = data['misfit'].sum()
+
 ## draw rotated data
 plt.scatter(data['x_working'], data['y_working'], color='blue')
 
 ## export
 data.to_csv(outfile)
 
+## print output
+print "Optimized rotation: "+str(min_angle.x)+u'\N{DEGREE SIGN}'
+print "Total misfit: "+str(misfit)+" meters"
+
 ## make plot
-plt.show()
+# plt.show()
+plt.savefig(figout)
 exit()

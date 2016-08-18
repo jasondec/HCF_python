@@ -12,20 +12,23 @@ rootpath = '/Users/jasondec/0_gradwork/0_hcf/'
 TS_data_file = rootpath+'TS_B_v0.csv'
 GPS_data_file = rootpath+'GPS_B_v0.csv'
 outfile = rootpath+'TS_B_v1.csv'
+figout = rootpath+'TS_B_v1.png'
 base = 'B_base'
 
 ## Plot prep
 hcf.init_plot()
 
-
 ## Import
 data = hcf.import_v0_data(TS_data_file,GPS_data_file)  ## import raw data
+
+## convert TS and GPS to UTM
+hcf.convert_working_to_UTM(data)
+hcf.convert_GPS_to_UTM(data)
 
 ## XY points
 plt.scatter(data['x_working'], data['y_working'], color='grey')
 hcf.shift_points(data,base)
 # hcf.rotate_points(data, 180, base)
-# hcf.calc_misfit_simple(data)
 working = data.copy()
 
 plt.scatter(data['x_working'], data['y_working'], color='black')
@@ -41,19 +44,24 @@ data['elev_diff'] = data['gps_elev'] - data['z_working']
 
 ## 165.23694478019937 degrees rotation, 7.810900286653812 total misfit
 ## calculate minimum result of function
-min_angle = optimize.minimize_scalar(hcf.optimize_rotate_weighted,args=(working,base))
-print min_angle
+min_angle = optimize.minimize_scalar(hcf.optimize_rotate_simple,args=(working,base))
 
 ## apply optimized angle to dataframe
 hcf.rotate_points(data, min_angle.x, base)
+hcf.calc_misfit(data)
+misfit = data['misfit'].sum()
 
 ## draw rotated data
 plt.scatter(data['x_working'], data['y_working'], color='blue')
-data.to_csv(outfile)
 
 ## export
 data.to_csv(outfile)
 
+## print output
+print "Optimized rotation: "+str(min_angle.x)+u'\N{DEGREE SIGN}'
+print "Total misfit: "+str(misfit)+" meters"
+
 ## make plot
-plt.show()
+# plt.show()
+plt.savefig(figout)
 exit()

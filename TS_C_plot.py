@@ -42,10 +42,10 @@ for index,row in data.iterrows():
 plt.scatter(data['x_project'], data['y_project'], color='pink')
 
 ## init Figure 2
-plt.figure(num=2, figsize=(8, 8), dpi=80)
+plt.figure(num=2, figsize=(13, 3), dpi=80)
 plt.grid(True)
 # plt.axes().set_aspect('equal', 'datalim')
-plt.axis([data['position_on_line'].min()-20,data['position_on_line'].max()+20,2100,2135])
+plt.axis([data['position_on_line'].min()-20,data['position_on_line'].max()+20,data['z_working'].min()-4,data['z_working'].max()+4])
 plt.scatter(data['position_on_line'], data['z_working'], color='black')
 
 ## export

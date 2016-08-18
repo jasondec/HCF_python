@@ -72,16 +72,16 @@ def calc_misfit_weighted(dataframe):
 	return dataframe
 
 
-def calc_misfit_simple(dataframe):
+def calc_misfit(df):
 	import numpy as np
 
 	## calculate misfit
-	a = dataframe['x_working'] - dataframe['gps_lon']
-	b = dataframe['y_working'] - dataframe['gps_lat']
+	a = df['x_working'] - df['gps_lon']
+	b = df['y_working'] - df['gps_lat']
 	c = np.square(a) + np.square(b)
-	dataframe['misfit'] = np.sqrt(c)
+	df['misfit'] = np.sqrt(c)
 
-	return dataframe
+	return df
 
 
 def wgs84_to_utm(dataframe,xIn,yIn,xOut,yOut):
@@ -126,13 +126,16 @@ def optimize_rotate_simple(angle,df,base):
 		a = newX - gpsX
 		b = newY - gpsY
 		c = np.square(a) + np.square(b)
-		misfit = np.sqrt(c)
+		if np.isfinite(row['gps_horiz_acc']):
+			misfit = np.sqrt(c) / row['gps_horiz_acc']
+		else:
+			misfit = np.sqrt(c)
 		sum = sum + misfit
-		print angle, index, sum
+		# print angle, index, sum
 	plt.scatter(df['x_working'], df['y_working'], color='orange')
 	return sum
 
-def optimize_rotate_weighted(angle,df,base):
+def optimize_rotate_UTMconvert(angle,df,base):
 	import numpy as np
 	import math
 	import utm
@@ -169,3 +172,21 @@ def fitline(df):
 	# yfit = [intercept + slope * xi for xi in df['x_working']]
 	# plt.plot(df['x_working'], yfit)
 	return slope,intercept
+
+## convert TS to UTM
+def convert_working_to_UTM(df):
+	import utm
+	for index,row in df.iterrows():
+		TS = utm.from_latlon(row['y_working'],row['x_working'])
+		df.set_value(index,'x_working',TS[0])
+		df.set_value(index,'y_working',TS[1])
+
+def convert_GPS_to_UTM(df):
+	import utm
+	import numpy as np
+
+	for index, row in df.iterrows():
+		if np.isfinite(row['gps_lat']):
+			GPS = utm.from_latlon(row['gps_lat'], row['gps_lon'])
+			df.set_value(index, 'gps_lon', GPS[0])
+			df.set_value(index, 'gps_lat', GPS[1])

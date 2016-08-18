@@ -9,10 +9,10 @@ import utm
 
 ## Total Station Line C
 rootpath = '/Users/jasondec/0_gradwork/0_hcf/'
-TS_data_file = rootpath+'TS_A_v0.csv'
-GPS_data_file = rootpath+'GPS_A_v0.csv'
-outfile = rootpath+'TS_A_v1.csv'
-base = 'A_base'
+TS_data_file = rootpath+'TS_B_v0.csv'
+GPS_data_file = rootpath+'GPS_B_v0.csv'
+outfile = rootpath+'TS_B_v1.csv'
+base = 'B_base'
 
 ## Plot prep
 hcf.init_plot()

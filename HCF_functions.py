@@ -10,7 +10,7 @@ def rotate_xy(xPoint,yPoint,x0,y0,angle):
 	return xNew,yNew
 
 
-def import_data(TS_data_file,GPS_data_file):
+def import_v0_data(TS_data_file,GPS_data_file):
 	import pandas as pd
 	import matplotlib.pyplot as plt
 
@@ -29,6 +29,11 @@ def import_data(TS_data_file,GPS_data_file):
 
 	return dataframe
 
+def import_v1_data(file):
+	import pandas as pd
+
+	dataframe = pd.read_csv(file, comment='#', index_col='ID')  ## import CSV file using ID col as the indexer
+	return dataframe
 
 def shift_points(dataframe,base):
 	## Shift all TS points by base - A_base_TS in x,y,z

@@ -19,7 +19,7 @@ hcf.init_plot()
 
 
 ## Import
-data = hcf.import_data(TS_data_file,GPS_data_file)  ## import raw data
+data = hcf.import_v0_data(TS_data_file,GPS_data_file)  ## import raw data
 
 ## XY points
 plt.scatter(data['x_working'], data['y_working'], color='grey')
@@ -42,40 +42,12 @@ data['elev_diff'] = data['gps_elev'] - data['z_working']
 ## 165.23694478019937 degrees rotation, 7.810900286653812 total misfit
 ## calculate minimum result of function
 min_angle = optimize.minimize_scalar(hcf.optimize_rotate_weighted,args=(working,base))
-print min_angle
 
 ## apply optimized angle to dataframe
 hcf.rotate_points(data, min_angle.x, base)
 
 ## draw rotated data
 plt.scatter(data['x_working'], data['y_working'], color='blue')
-
-## best fit straight line of points
-slope, intercept = hcf.fitline(data)
-
-## define Shapely linestring using westmost and eastmost endpoints
-point1 = Point(data['x_working'].min(),slope*data['x_working'].min()+intercept)
-point2 = Point(data['x_working'].max(),slope*data['x_working'].max()+intercept)
-ls = LineString([point1,point2])
-
-## iterate through dataframe, project each TS point on Shapely line.  Determine position on line and absolute x,y value
-for index,row in data.iterrows():
-	pointN = Point(row['x_working'],row['y_working'])
-	projectN = ls.project(pointN)
-	data.set_value(index,'position_on_line',projectN)
-	globalN = ls.interpolate(projectN)
-	data.set_value(index,'x_project',globalN.x)
-	data.set_value(index,'y_project',globalN.y)
-
-## plot points projected on best fit line
-plt.scatter(data['x_project'], data['y_project'], color='pink')
-
-## init Figure 2
-plt.figure(num=2, figsize=(8, 8), dpi=80)
-plt.grid(True)
-# plt.axes().set_aspect('equal', 'datalim')
-plt.axis([data['position_on_line'].min()-20,data['position_on_line'].max()+20,2100,2135])
-plt.scatter(data['position_on_line'], data['z_working'], color='black')
 
 ## export
 data.to_csv(outfile)

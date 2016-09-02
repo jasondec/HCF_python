@@ -40,6 +40,9 @@ for index,row in data.iterrows():
 	offsetN = globalN.distance(pointN)
 	data.set_value(index, 'offset_from_line', offsetN)
 
+data = data.sort_values(by='position_on_line',ascending='true')
+print data
+
 ## plot points projected on best fit line
 plt.scatter(data['x_project'], data['y_project'], color='pink')
 
@@ -49,6 +52,9 @@ plt.grid(True)
 # plt.axes().set_aspect('equal', 'datalim')
 plt.axis([data['position_on_line'].min()-20,data['position_on_line'].max()+20,data['z_working'].min()-4,data['z_working'].max()+4])
 plt.scatter(data['position_on_line'], data['z_working'], color='black')
+plt.plot(data['position_on_line'], data['z_working'], color='black')
+
+hcf.convert_working_to_latlon(data,11,'S')
 
 ## export
 data.to_csv(outfile)

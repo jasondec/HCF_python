@@ -190,3 +190,10 @@ def convert_GPS_to_UTM(df):
 			GPS = utm.from_latlon(row['gps_lat'], row['gps_lon'])
 			df.set_value(index, 'gps_lon', GPS[0])
 			df.set_value(index, 'gps_lat', GPS[1])
+
+def convert_working_to_latlon(df,zone_num=11,zone_letter='S'):
+	import utm
+	for index,row in df.iterrows():
+		TS = utm.to_latlon(row['x_working'],row['y_working'],zone_num,zone_letter)
+		df.set_value(index, 'y_working', TS[0])
+		df.set_value(index, 'x_working', TS[1])

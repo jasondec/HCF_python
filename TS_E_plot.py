@@ -15,7 +15,6 @@ base = 'E_base'
 ## Import
 data = hcf.import_v1_data(v1_file)  ## import rotated data
 
-
 working = data.copy()
 hcf.init_plot()
 plt.scatter(data['x_working'], data['y_working'], color='black')
@@ -38,6 +37,9 @@ for index,row in data.iterrows():
 	data.set_value(index,'x_project',globalN.x)
 	data.set_value(index,'y_project',globalN.y)
 
+data = data.sort_values(by='position_on_line',ascending='true')
+print data
+
 ## plot points projected on best fit line
 plt.scatter(data['x_project'], data['y_project'], color='pink')
 
@@ -47,6 +49,17 @@ plt.grid(True)
 # plt.axes().set_aspect('equal', 'datalim')
 plt.axis([data['position_on_line'].min()-20,data['position_on_line'].max()+20,2100,2135])
 plt.scatter(data['position_on_line'], data['z_working'], color='black')
+plt.plot(data['position_on_line'], data['z_working'], color='black')
+
+# ax = data.plot(x='position_on_line',y='z_working',kind='scatter', grid='on')
+# def annotate_df(row):
+#     ax.annotate(row.name, row.values,
+#                 xytext=(10,-5),
+#                 textcoords='offset points',
+#                 size=18,
+#                 color='darkslategrey')
+# ab= data.apply(annotate_df, axis=1)
+
 
 ## export
 data.to_csv(outfile)

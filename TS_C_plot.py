@@ -8,8 +8,8 @@ from shapely.geometry import Point, LineString
 
 ## Total Station Line C
 rootpath = '/Users/jasondec/0_gradwork/0_hcf/'
-v1_file = rootpath+'TS_C_v1b.csv'
-outfile = rootpath+'TS_C_v2.csv'
+v1_file = rootpath+'TS_C_v1.csv'
+outfile = rootpath+'TS_C_v3.csv'
 base = 'C_base'
 
 ## Import

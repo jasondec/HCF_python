@@ -56,6 +56,8 @@ def fitline_plot(df):
 
 fitline_plot(data)
 
+## convert to lat/lon
+hcf.convert_working_to_latlon(data,11,'S')
 
 ## export
 data.to_csv(outfile)

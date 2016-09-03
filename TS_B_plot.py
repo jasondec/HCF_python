@@ -56,6 +56,9 @@ plt.axis([data['position_on_line'].min()-20,data['position_on_line'].max()+20,da
 plt.scatter(data['position_on_line'], data['z_working'], color='black')
 plt.plot(data['position_on_line'], data['z_working'], color='black')
 
+## convert to lat/lon
+hcf.convert_working_to_latlon(data,11,'S')
+
 ## export
 data.to_csv(outfile)
 

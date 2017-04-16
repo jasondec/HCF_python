@@ -55,7 +55,7 @@ plt.scatter(data['position_on_line'], data['z_working'], color='black')
 plt.plot(data['position_on_line'], data['z_working'], color='black')
 
 ## convert to lat/lon
-hcf.convert_working_to_latlon(data,11,'S')
+	hcf.convert_working_to_latlon(data,11,'S')
 
 ## export
 data.to_csv(outfile)

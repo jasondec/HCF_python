@@ -8,13 +8,13 @@ import HCF_functions as hcf
 from shapely.geometry import Point, LineString
 import utm
 
-## Total Station Line C
-rootpath = '/Users/jasondec/0_gradwork/0_classes/0_durmid/'
-TS_data_file = rootpath+'durmid_A_v0.csv'
+## Total Station Line A
+rootpath = '/Users/jasondec/0_gradwork/0_classes/0_durmid_2/'
+TS_data_file = rootpath+'durmid_C_v0.csv'
 GPS_data_file = rootpath+'GPS_A_v0.csv'
-outfile = rootpath+'durmid_A_v1.csv'
-figout = rootpath+'durmid_A_v1.png'
-base = '_base'
+outfile = rootpath+'durmid_C_v1.csv'
+figout = rootpath+'durmid_C_v1.png'
+base = "BC_62"
 
 ## Plot prep
 hcf.init_plot()
@@ -22,14 +22,12 @@ hcf.init_plot()
 
 ## Import
 data = hcf.import_v0_data(TS_data_file,GPS_data_file)  ## import raw data
-
 ## convert TS and GPS to UTM
-hcf.convert_working_to_UTM(data)
+# hcf.convert_working_to_UTM(data)
 hcf.convert_GPS_to_UTM(data)
 
-
 ## XY points
-plt.scatter(data['x_working'], data['y_working'], color='grey')
+# plt.scatter(data['x_working'], data['y_working'], color='grey')
 hcf.shift_points(data,base)
 # hcf.rotate_points(data, 180, base)
 working = data.copy()

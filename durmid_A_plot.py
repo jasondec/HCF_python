@@ -7,7 +7,7 @@ import HCF_functions as hcf
 from shapely.geometry import Point, LineString
 
 ## Total Station Line C
-rootpath = '/Users/jasondec/0_gradwork/0_durmid/'
+rootpath = '/Users/jasondec/0_gradwork/0_classes/0_durmid/'
 v1_file = rootpath+'durmid_A_v1.csv'
 outfile = rootpath+'durmid_A_v2.csv'
 base = 'BC_1'

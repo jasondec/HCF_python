@@ -11,12 +11,12 @@ def rotate_xy(xPoint,yPoint,x0,y0,angle):
 
 
 def import_v0_data(TS_data_file,GPS_data_file):
-	import pandas as pd
+	import pandas
 	import matplotlib.pyplot as plt
 
-	TS_data = pd.read_csv(TS_data_file, comment='#', index_col='ID')  ## import CSV file using ID col as the indexer
-	GPS_data = pd.read_csv(GPS_data_file, comment='#', index_col='gps_point')  ## import CSV file using Point col as indexer
-	dataframe = pd.merge(TS_data, GPS_data, left_index=True, right_index=True, how='left')
+	TS_data = pandas.read_csv(TS_data_file, comment='#', index_col='ID')  ## import CSV file using ID col as the indexer
+	GPS_data = pandas.read_csv(GPS_data_file, comment='#', index_col='gps_point')  ## import CSV file using Point col as indexer
+	dataframe = pandas.merge(TS_data, GPS_data, left_index=True, right_index=True, how='left')
 
 	## copy original values to new working columns
 	dataframe['x_working'] = dataframe['X0']

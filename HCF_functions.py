@@ -9,8 +9,6 @@ def rotate_xy(xPoint,yPoint,x0,y0,angle):
 	yNew = y0 + yDiff * math.cos(angle) + xDiff * math.sin(angle)
 	return xNew,yNew
 
-def hello():
-	pass
 
 def import_v0_data(TS_data_file,GPS_data_file):
 	import pandas
